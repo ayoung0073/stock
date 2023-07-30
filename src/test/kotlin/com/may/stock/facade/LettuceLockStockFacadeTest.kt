@@ -2,7 +2,8 @@ package com.may.stock.facade
 
 import com.may.stock.domain.Stock
 import com.may.stock.repository.StockRepository
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,9 +12,9 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
 @SpringBootTest
-internal class NamedLockStockFacadeTest(
+internal class LettuceLockStockFacadeTest(
     @Autowired
-    private val namedLockStockFacade: NamedLockStockFacade,
+    private val lettuceLockStockFacade: LettuceLockStockFacade,
     @Autowired
     private val stockRepository: StockRepository
 ) {
@@ -27,6 +28,10 @@ internal class NamedLockStockFacadeTest(
         println("save And Flush 성공")
     }
 
+    @AfterEach
+    fun delete() {
+        stockRepository.deleteAll()
+    }
 
     @Test
     fun `동시에_100명이_주문`() {
@@ -36,11 +41,13 @@ internal class NamedLockStockFacadeTest(
         for (i in 0 until threadCount) {
             executorService.submit {
                 try {
-                    namedLockStockFacade.decrease(1L, 1L)
-                } catch (e: RuntimeException) {
-                    throw e
+                    lettuceLockStockFacade.decrease(1L, 1L)
+                    println("decrease")
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 } finally {
                     latch.countDown()
+                    println("countDown")
                 }
             }
         }

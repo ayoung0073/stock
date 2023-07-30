@@ -11,9 +11,9 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
 @SpringBootTest
-internal class NamedLockStockFacadeTest(
+internal class RedissonLockStockFacadeTest(
     @Autowired
-    private val namedLockStockFacade: NamedLockStockFacade,
+    private val redissonLockStockFacade: RedissonLockStockFacade,
     @Autowired
     private val stockRepository: StockRepository
 ) {
@@ -24,9 +24,7 @@ internal class NamedLockStockFacadeTest(
             quantity = 100L
         )
         stockRepository.saveAndFlush<Stock>(stock)
-        println("save And Flush 성공")
     }
-
 
     @Test
     fun `동시에_100명이_주문`() {
@@ -36,9 +34,7 @@ internal class NamedLockStockFacadeTest(
         for (i in 0 until threadCount) {
             executorService.submit {
                 try {
-                    namedLockStockFacade.decrease(1L, 1L)
-                } catch (e: RuntimeException) {
-                    throw e
+                    redissonLockStockFacade.decrease(1L, 1L)
                 } finally {
                     latch.countDown()
                 }
