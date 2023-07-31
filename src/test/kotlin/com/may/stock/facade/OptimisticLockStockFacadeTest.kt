@@ -2,7 +2,6 @@ package com.may.stock.facade
 
 import com.may.stock.domain.Stock
 import com.may.stock.repository.StockRepository
-import com.may.stock.service.OptimisticLockStockService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,7 +23,7 @@ internal class OptimisticLockStockFacadeTest(
             productId = 1L,
             quantity = 100L
         )
-        stockRepository.saveAndFlush<Stock>(stock)
+        stockRepository.saveAndFlush(stock)
     }
 
 

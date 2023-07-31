@@ -1,9 +1,8 @@
-package com.may.stock.facade
+package com.may.stock.service
 
-import com.may.stock.domain.Stock
-import com.may.stock.repository.StockRepository
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
+import com.may.stock.domain.StockDocument
+import com.may.stock.repository.MongoStockRepository
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,24 +11,28 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
 @SpringBootTest
-internal class LettuceLockStockFacadeTest(
+internal class MongoStockServiceTest(
     @Autowired
-    private val lettuceLockStockFacade: LettuceLockStockFacade,
+    private val stockMongoService: MongoStockService,
     @Autowired
-    private val stockRepository: StockRepository
+    private val mongoStockRepository: MongoStockRepository
 ) {
     @BeforeEach
     fun insert() {
-        val stock = Stock(
+        val stock = StockDocument(
+            id = 1L,
             productId = 1L,
             quantity = 100L
         )
-        stockRepository.saveAndFlush<Stock>(stock)
+        mongoStockRepository.save(stock)
     }
 
-    @AfterEach
-    fun delete() {
-        stockRepository.deleteAll()
+    @Test
+    fun `decrease 테스트`() {
+        stockMongoService.decrease(1L, 1L)
+        val stock = mongoStockRepository.findById(1L)
+        // 100 - 1 = 99
+        assertEquals(99, stock?.quantity)
     }
 
     @Test
@@ -40,18 +43,16 @@ internal class LettuceLockStockFacadeTest(
         for (i in 0 until threadCount) {
             executorService.submit {
                 try {
-                    lettuceLockStockFacade.decrease(1L, 1L)
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                    stockMongoService.decrease(1L, 1L)
                 } finally {
                     latch.countDown()
                 }
             }
         }
         latch.await()
-        val stock = stockRepository.findById(1L).orElseThrow()
+        val stock = mongoStockRepository.findById(1L)
 
         // 100 - (100 * 1) = 0
-        assertEquals(0, stock.quantity)
+        assertEquals(0, stock?.quantity)
     }
 }
