@@ -1,10 +1,6 @@
 package com.may.stock.domain
 
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Version
+import jakarta.persistence.*
 
 @Entity
 class Stock(
@@ -12,6 +8,7 @@ class Stock(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private val id: Long = 0,
 
+    @Column(unique = true)
     var productId: Long,
 
     var quantity: Long,
